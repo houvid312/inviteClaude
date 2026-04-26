@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a0a1e" />
+  <meta property="og:title" content="Una invitacion especial para ti" />
+  <meta property="og:description" content="Alguien tiene algo muy especial preparado para ti..." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>Para ti, mi monita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: linear-gradient(135deg, #1a0a1e 0%, #2d1b30 50%, #1f0f24 100%);
+      color: #faf5ef;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== VARIABLES ===== */
+    :root {
+      --plum: #1a0a1e;
+      --wine: #2d1b30;
+      --rose-gold: #e8a87c;
+      --blush: #d4a0a0;
+      --champagne: #f5e6cc;
+      --cream: #faf5ef;
+      --lavender: #c9b8d4;
+      --warm-pink: #d4748a;
+    }
+
+    /* ===== ANIMATED BACKGROUND ===== */
+    .bg-animated {
+      background: linear-gradient(135deg, var(--plum), var(--wine), #1f0f24, var(--plum));
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+    }
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* ===== FLOATING HEARTS ===== */
+    .hearts-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .floating-heart {
+      position: absolute;
+      bottom: -50px;
+      font-size: 20px;
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.3; }
+      100% { transform: translateY(-110vh) rotate(360deg) scale(0.5); opacity: 0; }
+    }
+
+    /* ===== SPARKLES (for invitation screen) ===== */
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--champagne);
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 0.8; transform: scale(1.2); }
+    }
+
+    /* ===== SHIMMER TEXT ===== */
+    .text-shimmer {
+      background: linear-gradient(90deg, var(--rose-gold), var(--champagne), var(--rose-gold));
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    /* ===== HEARTBEAT ===== */
+    .heart-pulse {
+      animation: heartbeat 2s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      15% { transform: scale(1.15); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.1); }
+      60% { transform: scale(1); }
+    }
+
+    /* ===== GLASSMORPHISM ===== */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+    }
+
+    /* ===== ENTRY GATE ===== */
+    #entry-gate {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    #entry-gate.leaving {
+      opacity: 0;
+      transform: scale(1.05);
+      pointer-events: none;
+    }
+    .gate-content {
+      text-align: center;
+      max-width: 420px;
+      padding: 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+    .gate-line {
+      opacity: 0;
+      transform: translateY(25px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .gate-line.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .gate-line-1 { color: var(--lavender); font-size: 1.3rem; font-weight: 300; margin-bottom: 1rem; }
+    .gate-line-2 { color: var(--blush); font-size: 1.15rem; font-weight: 300; margin-bottom: 2rem; opacity: 0.7; }
+    .gate-question {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.8rem;
+      line-height: 1.3;
+      margin-bottom: 2.5rem;
+    }
+    @media (min-width: 768px) { .gate-question { font-size: 3.5rem; } }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .btn-primary {
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      font-family: 'Lato', sans-serif;
+      color: var(--plum);
+      background: linear-gradient(135deg, var(--rose-gold), var(--warm-pink));
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 25px rgba(232, 168, 124, 0.25);
+    }
+    .btn-primary:hover { transform: scale(1.05); box-shadow: 0 6px 35px rgba(232, 168, 124, 0.35); }
+    .btn-primary:active { transform: scale(0.95); }
+
+    .btn-secondary {
+      padding: 0.75rem 2rem;
+      border: 1px solid rgba(201, 184, 212, 0.25);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-family: 'Lato', sans-serif;
+      color: rgba(201, 184, 212, 0.6);
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(201, 184, 212, 0.5); }
+
+    .no-message {
+      color: var(--blush);
+      font-size: 0.9rem;
+      font-style: italic;
+      margin-top: 0.75rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    .no-message.show { opacity: 0.7; transform: translateY(0); }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      15% { transform: translateX(-8px); }
+      30% { transform: translateX(8px); }
+      45% { transform: translateX(-6px); }
+      60% { transform: translateX(6px); }
+      75% { transform: translateX(-3px); }
+      90% { transform: translateX(3px); }
+    }
+    .shake { animation: shake 0.5s ease; }
+
+    /* ===== INVITATION SCREEN ===== */
+    #invitation {
+      display: none;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    #invitation.visible { display: block; opacity: 1; }
+
+    /* ===== SECTIONS ===== */
+    .section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+    }
+    .section-inner {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ===== SCROLL REVEAL ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal-left.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ===== SECTION A: OPENING ===== */
+    .opening-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3.2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    @media (min-width: 768px) { .opening-title { font-size: 4.5rem; } }
+    .opening-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.25rem;
+      color: rgba(250, 245, 239, 0.8);
+      font-weight: 400;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    /* Letter animation */
+    .letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: letterReveal 0.4s ease forwards;
+    }
+    @keyframes letterReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      opacity: 0;
+      animation: fadeInDelay 1s ease 2s forwards;
+    }
+    .scroll-indicator span {
+      font-size: 0.75rem;
+      color: rgba(201, 184, 212, 0.5);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .scroll-chevron {
+      font-size: 1.5rem;
+      color: rgba(232, 168, 124, 0.5);
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+    @keyframes fadeInDelay {
+      to { opacity: 1; }
+    }
+
+    /* ===== SECTION B: REVEAL ===== */
+    .reveal-label {
+      color: var(--lavender);
+      font-size: 1.1rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+    .reveal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+    @media (min-width: 768px) { .reveal-title { font-size: 3.2rem; } }
+    .divider {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--rose-gold), transparent);
+      margin: 1.5rem auto;
+      opacity: 0.6;
+    }
+    .diamond-label {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.35rem;
+      color: var(--champagne);
+      margin-bottom: 1rem;
+    }
+    .reveal-desc {
+      color: rgba(250, 245, 239, 0.7);
+      font-size: 1.05rem;
+      font-weight: 300;
+    }
+
+    /* ===== SECTION C: DETAILS ===== */
+    .details-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: var(--champagne);
+      margin-bottom: 2rem;
+    }
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 0;
+    }
+    .detail-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(232, 168, 124, 0.1);
+      border: 1px solid rgba(232, 168, 124, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .detail-text {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: rgba(250, 245, 239, 0.9);
+      text-align: left;
+    }
+
+    /* ===== SECTION D: RECOMMENDATIONS ===== */
+    .reco-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: var(--champagne);
+      margin-bottom: 0.5rem;
+    }
+    .reco-subtitle {
+      color: var(--lavender);
+      font-size: 0.85rem;
+      opacity: 0.6;
+      margin-bottom: 2rem;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+    }
+    .check-icon {
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .check-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    .check-icon .circle {
+      stroke-dasharray: 63;
+      stroke-dashoffset: 63;
+      transition: stroke-dashoffset 0.6s ease;
+    }
+    .check-icon .check {
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+      transition: stroke-dashoffset 0.4s ease 0.4s;
+    }
+    .check-item.revealed .circle { stroke-dashoffset: 0; }
+    .check-item.revealed .check { stroke-dashoffset: 0; }
+    .check-text {
+      font-size: 1rem;
+      color: rgba(250, 245, 239, 0.85);
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    /* ===== SECTION E: CLOSING ===== */
+    .closing-question {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      line-height: 1.4;
+      margin-bottom: 2.5rem;
+    }
+    @media (min-width: 768px) { .closing-question { font-size: 3rem; } }
+    .btn-large {
+      padding: 1.25rem 3rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      font-family: 'Lato', sans-serif;
+      color: var(--plum);
+      background: linear-gradient(135deg, var(--rose-gold), var(--warm-pink));
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 30px rgba(232, 168, 124, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-large:hover { transform: scale(1.05); box-shadow: 0 6px 40px rgba(232, 168, 124, 0.4); }
+    .btn-large:active { transform: scale(0.95); }
+
+    .confirmed {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .confirmed.show { display: flex; }
+    .confirmed-heart { font-size: 4rem; }
+    .confirmed-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3rem;
+    }
+    @media (min-width: 768px) { .confirmed-title { font-size: 3.5rem; } }
+    .confirmed-love {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.3rem;
+      color: rgba(250, 245, 239, 0.8);
+    }
+    .confirmed-date {
+      color: var(--lavender);
+      font-size: 1rem;
+      opacity: 0.6;
+      margin-top: 1rem;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(232, 168, 124, 0.3); border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-animated">
+
+  <!-- ===== FLOATING HEARTS BACKGROUND ===== -->
+  <div class="hearts-container" id="hearts-container"></div>
+
+  <!-- ===== ENTRY GATE ===== -->
+  <div id="entry-gate">
+    <div class="gate-content">
+      <p class="gate-line gate-line-1" id="line1">Tengo algo especial para ti...</p>
+      <p class="gate-line gate-line-2" id="line2">Pero primero...</p>
+      <h1 class="gate-line gate-question text-shimmer" id="line3">¿Eres Yurany, mi monita?</h1>
+      <div class="gate-line btn-group" id="line4">
+        <button class="btn-primary" id="btn-yes">Si, soy yo ♥</button>
+        <button class="btn-secondary" id="btn-no">No</button>
+        <p class="no-message" id="no-message"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INVITATION (hidden initially) ===== -->
+  <div id="invitation">
+
+    <!-- Sparkles background -->
+    <div class="hearts-container" id="sparkles-container"></div>
+
+    <!-- Section A: Opening -->
+    <section class="section" id="section-opening">
+      <div class="section-inner">
+        <h2 class="opening-title text-shimmer" id="animated-title"></h2>
+        <div class="reveal" style="transition-delay: 0.3s;">
+          <span class="heart-pulse" style="font-size: 2.5rem; display: inline-block; margin-bottom: 1rem;">♥</span>
+          <p class="opening-subtitle">
+            Quiero celebrar nuestro aniversario de una manera muy especial...
+          </p>
+        </div>
+      </div>
+      <div class="scroll-indicator">
+        <span>Desliza</span>
+        <div class="scroll-chevron">▾</div>
+      </div>
+    </section>
+
+    <!-- Section B: Reveal -->
+    <section class="section">
+      <div class="section-inner">
+        <div class="glass reveal">
+          <p class="reveal-label">Te invito a...</p>
+          <h2 class="reveal-title text-shimmer">Un dia de spa juntos</h2>
+          <div class="divider"></div>
+          <p class="diamond-label">✨ Experiencia Diamante ✨</p>
+          <p class="reveal-desc">~3 horas y 15 minutos de relajacion total para los dos</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section C: Details -->
+    <section class="section">
+      <div class="section-inner">
+        <div class="glass">
+          <h3 class="details-title reveal">Los detalles</h3>
+          <div class="detail-row reveal-left" style="transition-delay: 0.1s;">
+            <div class="detail-icon">📅</div>
+            <span class="detail-text">Domingo, 3 de Mayo</span>
+          </div>
+          <div class="detail-row reveal-left" style="transition-delay: 0.25s;">
+            <div class="detail-icon">⏰</div>
+            <span class="detail-text">2:30 PM</span>
+          </div>
+          <div class="detail-row reveal-left" style="transition-delay: 0.4s;">
+            <div class="detail-icon">📍</div>
+            <span class="detail-text">Paraiso Spa</span>
+          </div>
+          <div class="detail-row reveal-left" style="transition-delay: 0.55s;">
+            <div class="detail-icon">💎</div>
+            <span class="detail-text">Experiencia Diamante para 2</span>
+          </div>
+          <div class="detail-row reveal-left" style="transition-delay: 0.7s;">
+            <div class="detail-icon">⏱️</div>
+            <span class="detail-text">~3 horas 15 minutos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section D: Recommendations -->
+    <section class="section">
+      <div class="section-inner">
+        <div class="glass">
+          <h3 class="reco-title reveal">Para que disfrutes al maximo...</h3>
+          <p class="reco-subtitle reveal">Unas recomendaciones del spa</p>
+
+          <div class="check-item" style="transition-delay: 0.1s;">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle class="circle" cx="12" cy="12" r="10" stroke="#e8a87c" stroke-width="1.5"/>
+                <path class="check" d="M8 12.5l2.5 2.5 5-5" stroke="#f5e6cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="check-text">Lleva vestido de baño de dos piezas (que la parte de arriba se pueda retirar facil para el masaje)</span>
+          </div>
+          <div class="check-item" style="transition-delay: 0.25s;">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle class="circle" cx="12" cy="12" r="10" stroke="#e8a87c" stroke-width="1.5"/>
+                <path class="check" d="M8 12.5l2.5 2.5 5-5" stroke="#f5e6cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="check-text">Shorts holgados y comodos</span>
+          </div>
+          <div class="check-item" style="transition-delay: 0.4s;">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle class="circle" cx="12" cy="12" r="10" stroke="#e8a87c" stroke-width="1.5"/>
+                <path class="check" d="M8 12.5l2.5 2.5 5-5" stroke="#f5e6cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="check-text">Sandalias</span>
+          </div>
+          <div class="check-item" style="transition-delay: 0.55s;">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle class="circle" cx="12" cy="12" r="10" stroke="#e8a87c" stroke-width="1.5"/>
+                <path class="check" d="M8 12.5l2.5 2.5 5-5" stroke="#f5e6cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="check-text">Llegar 5-10 minutos antes de las 2:30 PM</span>
+          </div>
+          <div class="check-item" style="transition-delay: 0.7s;">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle class="circle" cx="12" cy="12" r="10" stroke="#e8a87c" stroke-width="1.5"/>
+                <path class="check" d="M8 12.5l2.5 2.5 5-5" stroke="#f5e6cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="check-text">Celular en silencio — este dia es solo para nosotros 💕</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section E: Closing -->
+    <section class="section" id="section-closing">
+      <div class="section-inner">
+        <div class="reveal">
+          <h2 class="closing-question">
+            Entonces...<br>
+            <span class="text-shimmer">¿Nos vamos?</span>
+          </h2>
+          <button class="btn-large" id="btn-accept">♥ Si, mi amor</button>
+        </div>
+        <div class="confirmed" id="confirmed">
+          <div class="confirmed-heart heart-pulse">♥</div>
+          <h3 class="confirmed-title text-shimmer">¡Es una cita!</h3>
+          <p class="confirmed-love">Te amo, mi monita 💕</p>
+          <div class="divider"></div>
+          <p class="confirmed-date">Nos vemos el 3 de mayo a las 2:30 PM</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ===== FLOATING HEARTS =====
+    function createHearts() {
+      const container = document.getElementById('hearts-container');
+      const hearts = ['♥', '❤', '♡', '💕'];
+      const colors = ['#e8a87c', '#d4a0a0', '#d4748a', '#f5e6cc', '#c9b8d4'];
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.fontSize = (12 + Math.random() * 16) + 'px';
+        heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+        heart.style.animationDuration = (8 + Math.random() * 12) + 's';
+        heart.style.animationDelay = (Math.random() * 10) + 's';
+        container.appendChild(heart);
+      }
+    }
+    createHearts();
+
+    // ===== SPARKLES =====
+    function createSparkles() {
+      const container = document.getElementById('sparkles-container');
+      for (let i = 0; i < 40; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.style.left = Math.random() * 100 + '%';
+        sparkle.style.top = Math.random() * 100 + '%';
+        sparkle.style.width = (2 + Math.random() * 4) + 'px';
+        sparkle.style.height = sparkle.style.width;
+        sparkle.style.animationDuration = (2 + Math.random() * 4) + 's';
+        sparkle.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(sparkle);
+      }
+    }
+
+    // ===== ENTRY GATE SEQUENCE =====
+    const lines = ['line1', 'line2', 'line3', 'line4'];
+    const delays = [500, 2000, 3500, 5000];
+    lines.forEach((id, i) => {
+      setTimeout(() => document.getElementById(id).classList.add('show'), delays[i]);
+    });
+
+    // ===== BUTTON LOGIC =====
+    const noMessages = [
+      'Hmm... ¿segura? Solo mi monita puede entrar 😏',
+      'Mmm, no te creo... Intentalo de nuevo 💕',
+      'Yo se que eres tu, mi monita hermosa... 🥰',
+    ];
+    let noCount = 0;
+
+    document.getElementById('btn-no').addEventListener('click', function() {
+      this.classList.add('shake');
+      setTimeout(() => this.classList.remove('shake'), 500);
+      const msg = document.getElementById('no-message');
+      msg.classList.remove('show');
+      setTimeout(() => {
+        msg.textContent = noMessages[Math.min(noCount, noMessages.length - 1)];
+        msg.classList.add('show');
+        noCount++;
+      }, 200);
+    });
+
+    document.getElementById('btn-yes').addEventListener('click', function() {
+      const gate = document.getElementById('entry-gate');
+      gate.classList.add('leaving');
+      setTimeout(() => {
+        gate.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        const invitation = document.getElementById('invitation');
+        invitation.classList.add('visible');
+        createSparkles();
+        animateTitle();
+        initScrollObserver();
+      }, 800);
+    });
+
+    // ===== LETTER-BY-LETTER TITLE =====
+    function animateTitle() {
+      const text = 'Mi monita hermosa';
+      const container = document.getElementById('animated-title');
+      container.innerHTML = '';
+      text.split('').forEach((char, i) => {
+        const span = document.createElement('span');
+        span.className = 'letter';
+        span.textContent = char === ' ' ? '\u00A0' : char;
+        span.style.animationDelay = (i * 0.06) + 's';
+        container.appendChild(span);
+      });
+    }
+
+    // ===== SCROLL OBSERVER =====
+    function initScrollObserver() {
+      const revealEls = document.querySelectorAll('.reveal, .reveal-left, .check-item');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      }, { threshold: 0.2 });
+      revealEls.forEach(el => observer.observe(el));
+    }
+
+    // ===== CONFETTI =====
+    document.getElementById('btn-accept').addEventListener('click', function() {
+      this.style.display = 'none';
+      document.getElementById('confirmed').classList.add('show');
+
+      const colors = ['#e8a87c', '#d4a0a0', '#d4748a', '#f5e6cc', '#c9b8d4'];
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      // Big center burst
+      confetti({ particleCount: 100, spread: 100, origin: { y: 0.6 }, colors: colors, scalar: 1.2 });
+
+      // Side streams
+      (function frame() {
+        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors: colors });
+        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors: colors });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    });
+
+    // Prevent scroll while on gate
+    document.body.style.overflow = 'hidden';
+  </script>
+</body>
+</html>
